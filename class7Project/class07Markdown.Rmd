@@ -2,7 +2,7 @@
 title: "Class 7 functions and packages"
 author: "Xiaoxue Lin"
 date: "1/30/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
@@ -30,7 +30,7 @@ We want to make this function more robust to these "string"" types of errors
 two functions to use, warning() and stop()
 
 ```{r}
-rescale2(c(1:5, "string"))
+#rescale2(c(1:5, "string"))
 ```
 
 ```{r}
@@ -103,9 +103,9 @@ stop("Input x and y should be vectors of the same length")
 ```
 
 ```{r}
-library("sigma")
-data <- system.file("examples/ediaspora.gexf.xml", package = "sigma")
-sigma(data)
+# library("sigma")
+# data <- system.file("examples/ediaspora.gexf.xml", package = "sigma")
+# sigma(data)
 ```
 
 ```{r}
