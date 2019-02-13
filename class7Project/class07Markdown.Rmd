@@ -1,0 +1,126 @@
+---
+title: "Class 7 functions and packages"
+author: "Xiaoxue Lin"
+date: "1/30/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Functions revisited
+
+load (i.e. **source**) our rescale() function from last day
+
+```{r}
+source("http://tinyurl.com/rescale-R")
+```
+
+test this function
+```{r}
+rescale(1:5)
+```
+
+```{r}
+#' rescale(c(1:5, "string"))
+```
+
+We want to make this function more robust to these "string"" types of errors
+two functions to use, warning() and stop()
+
+```{r}
+rescale2(c(1:5, "string"))
+```
+
+```{r}
+is.numeric(1:5)
+```
+
+```{r}
+is.numeric("string")
+```
+
+```{r}
+is.numeric(c(1:5, "string"))
+```
+
+```{r}
+!is.numeric(1:5)
+```
+
+```{r}
+x <- c( 1, 2, NA, 3, NA)
+y<-c(NA,3,NA,3, 4)
+```
+
+```{r}
+is.na(x)
+is.na(y)
+```
+
+```{r}
+sum(is.na (x) & is.na (y)) #this is a snippet
+# which(is.na(x) & is.na(y)) indicates where in the vector is the true element
+```
+
+Now take our working snippet and make first function
+
+```{r}
+both_na <- function (x,y) {
+  # Check for NA elements in both input vectors
+  sum(is.na (x) & is.na (y))
+}
+```
+
+```{r}
+x <- c( NA, NA, NA)
+y1 <- c( 1, NA, NA)
+y2 <- c( 1, NA, NA, NA)
+y3 <- c( 1, NA, NA, NA, NA)
+```
+
+```{r}
+# What will this return?
+both_na(x,y2)
+```
+
+When comparing x with y2, the last NA with y2 has no paring, so the first element of x is added on to the end of x to pair with y2.
+
+```{r}
+both_na <- function (x, y) {
+  if(length(x) != length(y)) {
+stop("Input x and y should be vectors of the same length")
+# be easily missed especially in scripts.
+}
+  na.in.both <- ( is.na(x) & is.na(y) )
+  na.number  <- sum(na.in.both)
+  na.which   <- which(na.in.both)
+  message("Found ", na.number, " NA's at position(s):",
+          paste(na.which, collapse=", ") )
+  return( list(number=na.number, which=na.which) )
+}
+```
+
+```{r}
+library("sigma")
+data <- system.file("examples/ediaspora.gexf.xml", package = "sigma")
+sigma(data)
+```
+
+```{r}
+install.packages("ggplot2")
+```
+
+```{r}
+install.packages("plotly")
+```
+
+```{r}
+library(ggplot2)
+library(plotly)
+p <- ggplot(data = diamonds, aes(x = cut, fill = clarity)) +
+            geom_bar(position = "dodge")
+ggplotly(p)
+```
+
