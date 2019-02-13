@@ -2,7 +2,7 @@
 title: "Class6 R Functions"
 author: "Xiaoxue Lin"
 date: "1/25/2019"
-output: html_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
