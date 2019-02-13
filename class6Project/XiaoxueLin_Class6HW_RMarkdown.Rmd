@@ -5,6 +5,7 @@ date: "2/1/2019"
 output:
   html_document: default
   pdf_document: default
+  github_document
 ---
 
 ```{r setup, include=FALSE}

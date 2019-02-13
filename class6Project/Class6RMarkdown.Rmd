@@ -27,10 +27,6 @@ read.csv(file1)
 ```
 
 ```{r}
-
-```
-
-```{r}
 file2 <- "https://bioboot.github.io/bggn213_S18/class-material/test2.txt"
 read.csv(file2, sep = "$")
 ```
@@ -170,10 +166,8 @@ s3.b <- s3.chainA$atom$b
 
 
 ```{r}
-
-
-rbind(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
-dist(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
-hclust(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+#rbind(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+#dist(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
+#hclust(s1.b, sse=s1.chainA, typ="l", ylab="Bfactor")
 ```
 
