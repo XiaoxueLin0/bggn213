@@ -2,7 +2,7 @@
 title: "Class 7 functions and packages"
 author: "Xiaoxue Lin"
 date: "1/30/2019"
-output: github_document
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -103,17 +103,17 @@ stop("Input x and y should be vectors of the same length")
 ```
 
 ```{r}
-# library("sigma")
-# data <- system.file("examples/ediaspora.gexf.xml", package = "sigma")
-# sigma(data)
+library("bio3d")
+data <- system.file("examples/ediaspora.gexf.xml", package = "bio3d")
+#sigma(data)
 ```
 
 ```{r}
-install.packages("ggplot2")
+#install.packages("ggplot2")
 ```
 
 ```{r}
-install.packages("plotly")
+#install.packages("plotly")
 ```
 
 ```{r}
