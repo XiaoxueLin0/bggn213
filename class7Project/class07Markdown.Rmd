@@ -3,7 +3,7 @@ title: "Class 7 functions and packages"
 author: "Xiaoxue Lin"
 date: "1/30/2019"
 output: github_document
-always_allow_html: no
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
