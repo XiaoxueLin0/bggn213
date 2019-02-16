@@ -1,0 +1,140 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## The PDB database
+
+Let's examine the PDB database composition
+
+```{r}
+stats <- read.csv("Tubulin_acetyltransferase.csv", row.names = 1)
+stats
+```
+
+Determine the percentage of structures solved by X-ray and Electron Microscopy
+
+```{r}
+pre.by.method <- stats$Total/sum(stats$Total) * 100
+
+#Add names to each row of the stats
+
+names(pre.by.method) <- rownames(stats)
+names(pre.by.method)
+```
+
+What proportion of structures are protein
+
+```{r}
+portion.protein <- sum(stats$Proteins) / sum(stats$Total)
+portion.protein
+```
+
+Paste with datapasta: use **Addins** to paste **as data.frame**
+
+```{r}
+test <- data.frame(stringsAsFactors=FALSE,
+   Experimental.Method = c("X-Ray", "NMR", "Electron Microscopy", "Other",
+                           "Multi Method", "Total"),
+              Proteins = c(124770, 10988, 2057, 250, 127, 138192),
+         Nucleic.Acids = c(1993, 1273, 31, 4, 5, 3306),
+    ProteinNA.Complex = c(6451, 257, 723, 6, 2, 7439),
+                 Other = c(10, 8, 0, 13, 1, 32),
+                 Total = c(133224, 12526, 2811, 273, 135, 148969)
+)
+
+```
+
+Read a pdb file
+
+```{r}
+library(bio3d)
+```
+
+
+```{r}
+pdb <- read.pdb("1hsg")
+pdb
+```
+
+From the above data info, it shows the number of chains (2 chains), non-protein molecules (127 residues of water, 1 residue of MK1 [the drug name])
+
+Install a package from BitBucket: the 'devtools' package allows us to install development versions
+
+```{r}
+install.packages("devtools")
+```
+
+# Install the bio3d.view package from bitbucket
+
+```{r}
+devtools::install_bitbucket("Grantlab/bio3d-view")
+```
+
+To check the structure quickly instead of opening VMD to look at the structure
+
+```{r}
+library("bio3d.view")
+# view(pdb, "overview", col="sse")
+```
+
+Extract the protein-only portion of this PDB structure and write it out to a new PDB file.
+
+Extract the ligand (i.g. drug) and write it out to a new PDB file
+
+```{r}
+# Select all C-alpha atoms (return their indices)
+ca.inds <- atom.select(pdb, "calpha")
+ca.inds
+
+# Select all drug molecules (return their indices)
+drug.inds <- atom.select(pdb, "ligand")
+drug.inds
+```
+
+In the above example, XYZ indices are three times larger than Atom Indices.
+
+```{r}
+# drug.inds$atom
+
+# to access the atoms of the pdb file
+pdb$atom
+
+# to access individual columns
+pdb$atom$chain
+
+# to access first several columns
+pdb$atom[1:3, 1:5] #first three atoms, and first five columns
+
+# to access drug molecules
+pdb$atom[drug.inds$atom, ]
+```
+
+To trim down the pdb to select specific molecules
+
+```{r}
+drug.trim <- trim.pdb(pdb, drug.inds) # drug.inds contains drug molecules that we obtained from atom.select() function
+drug.trim
+```
+
+To write out the pdb file using write.pdb function
+
+```{r}
+write.pdb(drug.trim, file = "ligand.pdb")
+```
+
+Another example exercise
+
+```{r}
+pdb <- read.pdb ("1HEL")
+pdb
+
+# Normal Mode Analysis (details in next class)
+
+modes <- nma(pdb)
+```
+
