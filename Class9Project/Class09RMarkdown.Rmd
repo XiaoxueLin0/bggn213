@@ -1,0 +1,232 @@
+---
+title: "Class9Project_BreastCancerData"
+author: "Xiaoxue Lin"
+date: "2/8/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+To download the file, use **read.csv()** function, and the file name should be parenthesized
+
+```{r}
+read.csv("WisconsinCancer.csv")
+```
+
+
+```{r}
+#save the file to a new data directory
+fna.data <- "WisconsinCancer.csv"
+
+# Complete the following code to input the data and store as wisc.df
+wisc.df <- read.csv(fna.data)
+```
+
+Double check data with **view()** or **head()**
+
+```{r}
+head(wisc.df)
+```
+
+The last column (x) is weird. Let's check how many patients and features are in this data. 
+
+```{r}
+nrow(wisc.df)
+ncol(wisc.df)
+```
+
+Use **as.matrix** to convert the other features (i.e. columns) of the data (in columns 3 through 32) to a matrix. 
+
+```{r}
+wisc.data <- wisc.df[ ,3:32]
+head(wisc.data)
+```
+
+Add patient ID as row names
+
+```{r}
+rownames(wisc.data) <- wisc.df$id
+head(wisc.data)
+```
+
+If we only want to include two individual columns instead of the whole set of columns
+
+```{r}
+wisc.df[ , c(4, 10, 32)]
+```
+
+Q: How many malignant /  belign samples are there?
+
+```{r}
+table(wisc.df$diagnosis)
+```
+
+Q: How many of the columns have mean values?
+
+```{r}
+colnames(wisc.data)
+grep("mean", x = colnames(wisc.data))
+
+#To know how many "means"" there are
+length(grep("mean", x = colnames(wisc.data)))
+```
+
+```{r}
+inds <- grep("mean", x = colnames(wisc.data))
+colnames(wisc.data)[inds]
+```
+
+apply() function will apply any function at a given position included in the argument
+
+```{r}
+apply(wisc.data, 2, mean) # 2 as column
+
+# to round up the figures
+round(apply(wisc.data, 2, mean), 2) 
+```
+
+Standard deviation
+```{r}
+round(apply(wisc.data, 2, sd), 2)
+```
+
+To compute a PCA
+
+```{r}
+wisc.pr <- prcomp(wisc.data, scale = TRUE)
+summary(wisc.pr)
+```
+
+From the above data, PC1 proportion of variance is 44% of the entire number of samples. PC2 does not do as well as PC1 (second principal component). 
+
+
+
+
+
+
+To do principal component analysis, first step is the see if the scale needs means and standard deviation
+
+```{r}
+colMeans(wisc.data)
+```
+
+Creating a plot using **biplot** for standard, simple data plot
+
+```{r}
+biplot(wisc.pr)
+```
+
+The data is really messy, we need to take PC1 and PC2 for plotting the data. One of the 5 elements in **wisc.pr** list is **x**, which is the PC data from PC1 to 30
+
+```{r}
+plot(wisc.pr$x[,1], wisc.pr$x[, 2])
+```
+
+Let's color the plot using the expert diagnosis
+
+```{r}
+#wisc.df$diagnosis
+plot(wisc.pr$x[,1], wisc.pr$x[, 2], col = wisc.df$diagnosis, 
+     xlab = "PC1", ylab = "PC2")
+```
+
+Variance:
+Calculate the variance of each principal component by squaring the sdev component of wisc.pr (i.e.  wisc.pr$sdev^2). Save the result as an object called pr.var.
+
+```{r}
+pr.var <- wisc.pr$sdev^2
+head(pr.var)
+```
+
+Proportion of each variance in the total variance
+
+```{r}
+pve <- pr.var / sum(pr.var)
+head(pve)
+```
+
+Round up the numbers
+```{r}
+round(pve * 100, 2)
+```
+
+create a plot of variance explained for each principal component
+type="l" would give a line plot, "b" a dot+line plot
+
+```{r}
+plot(pve, ylim = c(0, 1), type="b")
+```
+
+Let's do a simple barplot
+
+```{r}
+# Alternative scree plot of the same data, note data driven y-axis
+barplot(pve, ylab = "Precent of Variance Explained",
+        axes = FALSE, # deplete axes labels
+        names.arg = paste("PC", 1:length(pve)), las = 2) 
+axis(2, at=pve, labels=round(pve, 2)) #2 is the y plot label, this will give back the yaxis label
+```
+
+Clustering in Principal Component Analysis
+For hcluster we need a distance matrix and we get this from our PCA result (i.g. wisc.pr$x)
+
+```{r}
+d <- dist(wisc.pr$x[,1:2])
+hc <- hclust(d, method = "ward.D2")
+plot(hc)
+```
+
+To access the members under each branch of the tree plot, use **cutree()**
+
+```{r}
+cut <- cutree(hc, k = 3)
+head(cut)
+```
+
+To know how many data in each group
+```{r}
+grp3 <- table(cutree(hc, k = 3))
+head(grp3)
+```
+
+
+
+To plot the data via different cuts
+```{r}
+plot(wisc.pr$x[, 1:2],xlab = "PC1", ylab = "PC2", 
+     col =cut)
+```
+
+Cross tabulation
+
+```{r}
+#table(grp3)
+#First assign digits as diagnosis result: 0 for B, 1 for M
+diagnosis <- wisc.df$diagnosis == "M"
+table(cut, diagnosis)
+```
+
+```{r}
+table(cut, wisc.df$diagnosis)
+```
+
+Predict new data from previous model
+
+```{r}
+#url <- "new_samples.csv"
+url <- "https://tinyurl.com/new-samples-CSV"
+new <- read.csv(url)
+npc <- predict(wisc.pr, newdata=new)
+npc
+```
+
+Plot the new data
+
+```{r}
+plot(wisc.pr$x[,1:2], col = wisc.df$diagnosis) 
+points(npc[,1], npc[,2], col="blue", pch=16, cex = 3)
+```
+
