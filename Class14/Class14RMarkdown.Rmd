@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Read the cvs files
+
+```{r}
+counts <- read.csv("data/airway_scaledcounts.csv")
+metadata <-  read.csv("data/airway_metadata.csv")
+```
+
+```{r}
+head(counts)
+```
+
+```{r}
+head(metadata)
+```
+
+Calculate the mean counts per gene across these samples
+
+```{r}
+control <- metadata[metadata[,"dex"]=="control",]
+control.mean <- rowSums(counts[ , control$id])/4 
+names(control.mean) <- counts$ensgene
+```
+
+Follow the same procedure for the treated samples 
+
+```{r}
+treated <- metadata[metadata[,"dex"]=="treated",]
+treated.mean <- rowSums(counts[ , treated$id])/4 
+names(treated.mean) <- counts$ensgene
+```
+
+Combine our meancount data for bookkeeping purposes.
+
+```{r}
+meancounts <- data.frame(control.mean, treated.mean)
+```
+
+**colSums()** the data to show the sum of the mean counts across all genes for each group
+
+```{r}
+colSums(meancounts)
+```
+
+```{r}
+plot(control, treated)
+```
+

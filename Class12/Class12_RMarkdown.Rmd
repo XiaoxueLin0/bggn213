@@ -1,0 +1,96 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load the Bio3D package and use the get.pdb() function to download the "1hsg" PDB entry into your RStudio Project directory.
+
+```{r}
+library(bio3d)
+
+pdb.code <- "1hsg"
+file.name <- get.pdb(pdb.code)
+```
+
+use the read.pdb()function to read this PDB file into R so we can prepare it for further analysis. Write a new PDB format file.
+We will also do the same for the bound ligand.
+
+```{r}
+hiv <- read.pdb(file.name)
+hiv
+```
+
+From the above read.pdb function, there are 127 water molecules, 1 MK1 (drug compound)
+
+Protein extraction. You could look at the function of **trim.pdb** to know how to extract protein.
+
+```{r}
+prot <- trim.pdb(hiv, "protein")
+prot
+```
+
+Convert the extracted protein into a new file.
+Use **paste()** to *call* the extracted protein with a new name, no files are created
+
+```{r}
+#Without [sep=], the file name would contain a space, which is NOT desirable
+prot.filename <- paste(pdb.code, "_protein.pdb", sep="")
+write.pdb(prot, file=prot.filename)
+```
+
+Doing the same thing for ligand
+
+```{r}
+mk1 <- trim.pdb(hiv,"ligand")
+mk1
+```
+
+```{r}
+lig.filename <- paste(pdb.code, "_ligand.pdb", sep="")
+write.pdb(mk1, file=lig.filename)
+```
+
+To inspect the docking results, we will convert the **all.pdbqt** to a PDB format file
+
+```{r}
+library(bio3d)
+res <- read.pdb("all.pdbqt", multi=TRUE)
+write.pdb(res, "results.pdb")
+```
+
+Load the original 1hsg.pdb file and the new **results.pdb** file into VMD.
+
+Use the **rmsd()** function to compare to your docking results with original ligand.
+
+```{r}
+# res <- read.pdb("all.pdbqt", multi=TRUE)
+ori <- read.pdb("ligand.pdbqt")
+rmsd(ori, res)
+```
+
+Lower value of RMSD (root mean square distance) means better drug compound.
+
+Exploring the conformational dynamics of protein **1hel**
+
+```{r}
+library(bio3d)
+pdb <- read.pdb("1HEL")
+```
+
+the function **nma()** is used perform the normal mode calculation to probe large scale mobility of biomolecules.
+
+```{r}
+modes <- nma(pdb)
+plot(modes, sse=pdb)
+```
+
+Visualize NMA results
+
+```{r}
+ # Visualize NMA results
+mktrj(modes, mode=7, file="nma_7.pdb")
+```

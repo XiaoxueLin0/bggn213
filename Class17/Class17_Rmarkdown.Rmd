@@ -1,0 +1,70 @@
+---
+title: "Untitled"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(bio3d)
+seqs <- read.fasta("~/Downloads/lecture18_sequences.fa")
+seqs
+```
+
+```{r}
+alignment <- seqaln(seqs)
+alignment
+```
+
+
+```{r}
+seqs$ali
+```
+
+```{r}
+## Calculate positional identity scores
+ide <- conserv(seqs$ali, method="identity")
+mutant.sites <- which(ide < 1) 
+
+## Exclude gap possitions from analysis
+gaps <- gap.inspect(seqs)
+mutant.sites <- mutant.sites[mutant.sites %in% gaps$f.inds]
+mutant.sites
+```
+
+```{r}
+mutant.names <- paste0(seqs$ali["P53_wt", mutant.sites], 
+                       mutant.sites,
+                       seqs$ali["P53_mutant", mutant.sites])
+mutant.names
+```
+
+Now lets extract all 9-mer mutant encompassing sequences for each mutant site. This is equivalent to finding the sequence region eight residues before and eight residues after our mutation sites and outputting this subsequence to a new FASTA file.
+
+```{r}
+start.position <- mutant.sites - 8
+end.position <- mutant.sites + 8
+
+# Blank matrix to store sub-sequences
+store.seqs <- matrix("-", nrow=length(mutant.sites), ncol=17)
+rownames(store.seqs) <- mutant.names
+
+## Extract each sub-sequence
+for(x in 1:length(mutant.sites)) {
+  store.seqs[x,] <- seqs$ali["P53_wt", (start.position[x]:end.position[x])]}
+store.seqs
+```
+
+
+
+```{r}
+## Make a "names" label for our output sequences (one per mutant)
+mutant.names <- paste0(seqs$ali["P53_wt",mutant.sites],
+                       mutant.sites,
+                       seqs$ali["P53_mutant",mutant.sites])
+
+mutant.names
+```
+

@@ -1,0 +1,231 @@
+---
+title: "Untitled"
+output: github_document
+---
+## Section1: Differential Expression Analysis
+```{r eval=FALSE}
+if (!requireNamespace("BiocManager"))
+    install.packages("BiocManager")
+BiocManager::install()
+```
+
+Load our data files
+
+```{r}
+metaFile <- "data/GSE37704_metadata.csv"
+countFile <- "data/GSE37704_featurecounts.csv"
+```
+
+# Import betadata and take a peak
+
+```{r}
+colData = read.csv(metaFile, row.names=1)
+head(colData)
+```
+
+#Import count data
+
+```{r}
+countData = read.csv(countFile, row.names = 1)
+head(countData)
+```
+
+> Q: Complete the code below to remove the troublesome first column from  countData
+
+```{r}
+# Note we need to remove the odd first $length col
+countData <- as.matrix(countData[,-1])
+dim(countData)
+```
+
+```{r}
+rownames(colData)
+colnames(countData)
+all(rownames(colData) == colnames (countData)) # This sees whether two data sets are completely the same
+```
+
+Back to the **head(countData)** code, this looks better but there are lots of zero entries in there so let’s get rid of them as we have no data for these.
+
+> Q. Complete the code below to filter countData to exclude genes (i.e. rows) where we have 0 read count across all samples (i.e. columns).
+
+> Tip: What will rowSums() of countData return and how could you use it in this context?
+
+```{r}
+# rowSums(countData)
+
+# rowSums would sum up all available data of that particular row. We then exclude genes that have zero rowSum data
+
+inds <- rowSums(countData) != 0
+countData = countData[inds, ]
+head(countData)
+```
+
+How many genes do we have left?
+
+```{r}
+nrow(countData)
+```
+
+OR:
+
+```{r}
+nrow(countData)
+```
+
+We now have `r nrow(countData)` genes remaining in our dataset
+
+## Running DESeq2
+
+```{r}
+library(DESeq2)
+dds <- DESeqDataSetFromMatrix(countData=countData, 
+                             colData=colData, 
+                             design=~condition)
+dds <- DESeq(dds)
+```
+
+```{r}
+
+res <- results(dds)
+head(res)
+```
+
+Next, get results for the HoxA1 knockdown versus control siRNA (labeled as “hoxa1_kd” and “control_sirna” in our original colData metaFile input to DESeq). Check this by running **resultsNames(dds)** command.
+
+```{r}
+res = results(dds, contrast=c("condition", "hoxa1_kd", "control_sirna"))
+```
+
+> Q. Call the summary() function on your results to get a sense of how many genes are up or down-regulated at the default 0.1 p-value cutoff.
+
+```{r}
+summary(res)
+```
+
+##Volcono plot
+
+```{r}
+mycol <- rep("gray", nrow(res))
+mycol [ abs(res$log2FoldChange) >2 ] <- "red"
+inds <- (res$padj < 0.01) & (abs(res$log2FoldChange) > 2)
+mycol[inds] <- "blue"
+
+plot( res$log2FoldChange, -log(res$padj), col=mycol, xlab="Log2(FoldChange)", ylab="-Log(P-value)" )
+```
+
+```{r}
+write.csv(res,file="Volcano plot")
+```
+
+> Q. Use the mapIDs() function multiple times to add SYMBOL, ENTREZID and GENENAME annotation to our results by completing the code below.
+
+```{r}
+library("AnnotationDbi")
+library("org.Hs.eg.db")
+
+columns(org.Hs.eg.db)
+
+res$symbol = mapIds(org.Hs.eg.db,
+                    keys=row.names(res), 
+                    keytype="ENSEMBL",
+                    column="SYMBOL",
+                    multiVals="first")
+
+res$entrez = mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype="ENSEMBL",
+                    column="ENTREZID",
+                    multiVals="first")
+
+res$name =   mapIds(org.Hs.eg.db,
+                    keys=row.names(res),
+                    keytype="ENSEMBL",
+                    column="GENENAME",
+                    multiVals="first")
+
+head(res, 10)
+```
+
+> Q. Finally for this section let’s reorder these results by adjusted p-value and save them to a CSV file in your current project directory.
+
+```{r save_results}
+res = res[order(res$pvalue),]
+write.csv(res, file ="deseq_results.csv")
+```
+
+###Section2: Pathway Analysis
+
+Here we are going to use the gage package for pathway analysis. Once we have a list of enriched pathways, we’re going to use the pathview package to draw pathway diagrams, shading the molecules in the pathway by their degree of up/down-regulation.
+
+```{r}
+library(pathview)
+```
+
+```{r}
+library(gage)
+library(gageData)
+
+data(kegg.sets.hs)
+data(sigmet.idx.hs)
+
+# Focus on signaling and metabolic pathways only
+kegg.sets.hs = kegg.sets.hs[sigmet.idx.hs]
+
+# Examine the first 3 pathways
+head(kegg.sets.hs, 3)
+```
+
+Set up my input for **gage()**
+
+```{r}
+foldchanges = res$log2FoldChange
+names(foldchanges) = res$entrez
+head(foldchanges)
+```
+
+# Get the results
+
+```{r}
+keggres = gage(foldchanges, gsets=kegg.sets.hs)
+```
+
+**attributes** command tells you what is in each name
+```{r}
+attributes(keggres)
+```
+
+Like any list we can use the dollar syntax to access a named element, e.g. **head(keggres$greater)** and  **head(keggres$less)**.
+
+```{r}
+# Look at the first few down (less) pathways
+head(keggres$less)
+```
+
+```{r}
+pathview(gene.data=foldchanges, pathway.id="hsa04110")
+```
+
+If I am using regular text and wanted a [link]()
+
+![](hsa04110.pathview.png) # Could also put in any web address
+
+##Section3: Gene Ontology
+
+```{r}
+data(go.sets.hs)
+data(go.subs.hs)
+
+# Focus on Biological Process subset of GO
+gobpsets = go.sets.hs[go.subs.hs$BP]
+
+gobpres = gage(foldchanges, gsets=gobpsets, same.dir=TRUE)
+
+lapply(gobpres, head)
+```
+
+```{r}
+x <- 1:10
+x[x>5]
+
+
+```
