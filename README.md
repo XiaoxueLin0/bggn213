@@ -14,8 +14,8 @@ To access to my work [BGGN213 at UC San Diego](https://bioboot.github.io/bggn213
 - Class10 Introduction to Github
 - Class11 Structural bioinformatics: analyzing protein structure and function
 - Class12 Structural bioinformatics: drug discovery
-- Class13
-- Class14
+- Class13 Genomic informatics and high throughput sequencing
+- Class14 Transcriptomics and RNAseq analysis
 - Class15
 - Class16
 - Class17
